@@ -30,11 +30,16 @@ def load_and_preprocess_data(file_path, sheet_name='Sheet1'):
         for j in range(cols):
             matrix[i, j] = row_data[j] if i == 0 else df.iloc[i+2, j+2]
 
+    # independent_vars = matrix[:, [i for i in range(cols) if i not in (6, 7, 8)]]
     # 分离自变量和因变量
     # 自变量：矩阵中除去第7列和第8列（索引6和7）的所有列，并且不包括第9列（索引8）
-    independent_vars = matrix[:, [i for i in range(cols) if i not in (6, 7, 8)]]
+    independent_vars = matrix[:, [i for i in range(cols) if i not in range(14)]]
 
     # 因变量：矩阵中的第7列和第8列
     dependent_vars = matrix[:, [6, 7]]
 
     return independent_vars, dependent_vars, variable_names
+
+file_path = 'D:/桌面/汽油辛烷值模型/附件一：325个样本数据.xlsx'
+independent_vars, dependent_vars, variable_names = load_and_preprocess_data(file_path)
+print(independent_vars)

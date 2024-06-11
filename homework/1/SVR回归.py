@@ -1,8 +1,6 @@
 import numpy as np
-import pandas as pd
-from sklearn.decomposition import PCA
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
+from sklearn.svm import SVR
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error, r2_score
 import matplotlib.pyplot as plt
@@ -30,7 +28,14 @@ y_test_preds_original = []
 y_train_original_list = []
 y_test_original_list = []
 
-# 分别对两个目标变量进行主元回归
+# 定义参数网格
+param_grid = {
+    'C': [0.1, 1, 10, 100],
+    'epsilon': [0.01, 0.1, 0.5, 1],
+    'kernel': ['linear', 'poly', 'rbf', 'sigmoid']
+}
+
+# 分别对两个目标变量进行SVR回归
 for i in range(dependent_vars.shape[1]):
     scaler_y = StandardScaler()
     y_scaled = scaler_y.fit_transform(dependent_vars[:, i].reshape(-1, 1))
@@ -38,18 +43,22 @@ for i in range(dependent_vars.shape[1]):
     # 分割数据集为训练集和测试集
     X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_scaled, test_size=0.2, random_state=42)
 
-    # PCA降维
-    pca = PCA(n_components=min(X_train.shape[1], X_train.shape[0]))
-    X_train_pca = pca.fit_transform(X_train)
-    X_test_pca = pca.transform(X_test)
+    # 使用GridSearchCV进行参数调优
+    svr = SVR()
+    grid_search = GridSearchCV(svr, param_grid, cv=5, scoring='neg_mean_squared_error')
+    grid_search.fit(X_train, y_train.ravel())
 
-    # 线性回归模型
-    regressor = LinearRegression()
-    regressor.fit(X_train_pca, y_train)
+    # 获取最优参数
+    best_params = grid_search.best_params_
+    print(f'Best params for target {i + 1}: {best_params}')
+
+    # 使用最优参数训练模型
+    svr_best = SVR(C=best_params['C'], epsilon=best_params['epsilon'], kernel=best_params['kernel'])
+    svr_best.fit(X_train, y_train.ravel())
 
     # 预测
-    y_train_pred = regressor.predict(X_train_pca)
-    y_test_pred = regressor.predict(X_test_pca)
+    y_train_pred = svr_best.predict(X_train).reshape(-1, 1)
+    y_test_pred = svr_best.predict(X_test).reshape(-1, 1)
 
     # 反标准化预测结果
     y_train_pred_original = scaler_y.inverse_transform(y_train_pred)
