@@ -1,10 +1,11 @@
-# -*- coding: utf-8 -*-
 import numpy as np
 from sklearn.decomposition import PCA
 from pre_data import load_and_preprocess_data
+from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
 import matplotlib
 
+# 设置中文
 matplotlib.rcParams['font.family'] = 'Microsoft YaHei'
 
 # 加载并预处理数据
@@ -12,22 +13,18 @@ independent_vars, dependent_vars, variable_names, _ = load_and_preprocess_data('
 
 # 最小-最大归一化
 def normalize_data(data):
-    """
-    最小-最大归一化
-    :param data: 需要归一化的数据
-    :return: 归一化后的数据
-    """
-    # 计算每列的最小值和最大值
-    col_mins = np.min(data, axis=0)
-    col_maxs = np.max(data, axis=0)
 
-    # 归一化
-    normalized_data = (data - col_mins) / (col_maxs - col_mins)
+    # 创建MinMaxScaler对象
+    scaler = MinMaxScaler()
 
+    # 对自变量进行归一化
+    normalized_data = scaler.fit_transform(data)
     return normalized_data
+
 
 # 仅对自变量进行归一化
 normalized_independent_vars = normalize_data(independent_vars)
+
 
 # 低方差滤波
 def low_variance_filter(data, variable_names, threshold=0.05):
@@ -38,6 +35,7 @@ def low_variance_filter(data, variable_names, threshold=0.05):
 
     return filtered_data, filtered_var_names
 
+
 # 信息熵滤波
 def entropy_filter(data, variable_names, threshold=0.3):
     entropies = [entropy(data[:, i]) for i in range(data.shape[1])]
@@ -46,6 +44,7 @@ def entropy_filter(data, variable_names, threshold=0.3):
     filtered_var_names = [variable_names[i] for i in col_indices]
 
     return filtered_data, filtered_var_names
+
 
 # 计算信息熵
 def entropy(data):
@@ -59,6 +58,7 @@ def entropy(data):
     entropy = -np.sum([p * np.log2(p) for p in probabilities if p != 0])
 
     return entropy
+
 
 # 对归一化后的自变量进行低方差滤波和信息熵滤波
 independent_var_names = variable_names[14:]  # 提取自变量名称
@@ -81,7 +81,6 @@ pca_var_names = [f'PC{i+1}' for i in range(pca_independent_vars.shape[1])]
 print("PCA后的变量名称:")
 print(pca_var_names)
 print(f"PCA后的变量个数: {len(pca_var_names)}")
-
 
 
 # 计算累计解释方差比

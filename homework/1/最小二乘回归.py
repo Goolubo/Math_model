@@ -11,31 +11,31 @@ independent_vars, dependent_vars, variable_names = load_and_preprocess_data(file
 # 对自变量和因变量做最小二乘回归
 # 添加常数项到自变量中
 X = sm.add_constant(independent_vars)
-y1 = dependent_vars[:, 0]  # 第7列为因变量
-y2 = dependent_vars[:, 1]  # 第8列为因变量
+y1 = dependent_vars[:, 0]
+y2 = dependent_vars[:, 1]
 
-# 对第7列进行回归分析
+# 对第一个进行回归分析
 model_y1 = sm.OLS(y1, X).fit()
 results_y1 = model_y1.summary()
 y1_pred = model_y1.predict(X)
 
-# 对第8列进行回归分析
+# 对第二个进行回归分析
 model_y2 = sm.OLS(y2, X).fit()
 results_y2 = model_y2.summary()
 y2_pred = model_y2.predict(X)
 
 # 打印回归结果
-print("回归模型1（第7列作为因变量）结果：")
+print("回归模型1（硫含量作为因变量）结果：")
 print(results_y1)
 
-print("\n回归模型2（第8列作为因变量）结果：")
+print("\n回归模型2（辛烷值作为因变量）结果：")
 print(results_y2)
 
 
 # 可视化结果
 plt.figure(figsize=(14, 10))
 
-# 第7列回归分析结果
+# 第一个回归分析结果
 plt.subplot(2, 2, 1)
 plt.scatter(y1, y1_pred, alpha=0.6, color='blue', label='Predicted vs Actual')
 plt.plot([min(y1), max(y1)], [min(y1), max(y1)], color='red', linestyle='--', label='Ideal')
@@ -51,7 +51,7 @@ plt.xlabel('Predicted')
 plt.ylabel('Residuals')
 plt.title('Model 1: Residuals vs Predicted')
 
-# 第8列回归分析结果
+# 第二个回归分析结果
 plt.subplot(2, 2, 3)
 plt.scatter(y2, y2_pred, alpha=0.6, color='green', label='Predicted vs Actual')
 plt.plot([min(y2), max(y2)], [min(y2), max(y2)], color='red', linestyle='--', label='Ideal')

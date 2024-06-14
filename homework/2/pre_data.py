@@ -40,3 +40,4 @@ def load_and_preprocess_data(file_path, sheet_name='Sheet1'):
     dependent_vars = matrix[:, [7, 8]]
 
     return independent_vars, dependent_vars, variable_names, independent_vars_origin
+
