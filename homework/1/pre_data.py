@@ -31,11 +31,13 @@ def load_and_preprocess_data(file_path, sheet_name='Sheet1'):
             matrix[i, j] = row_data[j] if i == 0 else df.iloc[i+2, j+2]
 
     # 分离自变量和因变量
-    # 自变量：矩阵中除去第7列和第8列（索引6和7）的所有列，并且不包括第9列（索引8）
-    independent_vars = matrix[:, [i for i in range(cols) if i not in (6, 7, 8)]]
-    print(independent_vars)
+    # 自变量：去掉6、7、8列
+    independent_vars = matrix[:, [i for i in range(cols) if i not in range(7, 10)]]
 
-    # 因变量：矩阵中的第7列和第8列
-    dependent_vars = matrix[:, [6, 7]]
+    # 因变量：矩阵中的第6列和第7列
+    dependent_vars = matrix[:, [7, 8]]
+    # print(dependent_vars)
 
     return independent_vars, dependent_vars, variable_names
+
+
