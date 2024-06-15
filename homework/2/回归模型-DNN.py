@@ -10,7 +10,7 @@ from sklearn.preprocessing import MinMaxScaler
 import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader
-
+from sklearn.metrics import mean_squared_error, r2_score
 
 # 加载数据
 path = 'D:/桌面/汽油辛烷值模型/附件一：325个样本数据.xlsx'
@@ -35,7 +35,7 @@ combined_vars:(325, 18)
 
 # 将Numpy数组转换为PyTorch张量
 X = torch.from_numpy(combined_vars).float()
-y1 = torch.from_numpy(dependent_vars[:, 0]).float().unsqueeze(1)
+y1 = torch.from_numpy(np.log1p(dependent_vars[:, 0])).float().unsqueeze(1)  # 对第一个因变量进行对数变换
 y2 = torch.from_numpy(dependent_vars[:, 1]).float().unsqueeze(1)
 
 # 划分数据集为训练集和测试集
@@ -129,6 +129,25 @@ test_preds1 = np.array(test_preds1)
 test_labels1 = np.array(test_labels1)
 test_preds2 = np.array(test_preds2)
 test_labels2 = np.array(test_labels2)
+
+# 反对数变换第一个因变量的预测值
+test_preds1 = np.expm1(test_preds1)
+test_labels1 = np.expm1(test_labels1)
+
+# 计算MSE和R^2
+mse1 = mean_squared_error(test_labels1, test_preds1)
+r2_1 = r2_score(test_labels1, test_preds1)
+mse2 = mean_squared_error(test_labels2, test_preds2)
+r2_2 = r2_score(test_labels2, test_preds2)
+
+# 打印结果
+print(f'目标变量 1 的评估结果:')
+print(f'MSE: {mse1:.4f}')
+print(f'R²: {r2_1:.4f}')
+print(f'目标变量 2 的评估结果:')
+print(f'MSE: {mse2:.4f}')
+print(f'R²: {r2_2:.4f}')
+
 
 # 绘制预测图
 plt.figure()

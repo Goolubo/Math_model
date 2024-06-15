@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.linear_model import Lasso
+from sklearn.metrics import mean_squared_error, r2_score
 from pre_data import load_and_preprocess_data
 from pre_data2 import main
 
@@ -26,6 +27,15 @@ for i in range(n_targets):
 
     # 做预测
     y_pred = reg.predict(combined_vars)
+
+    # 计算评估指标
+    mse = mean_squared_error(dependent_vars[:, i], y_pred)
+    r2 = r2_score(dependent_vars[:, i], y_pred)
+
+    # 输出评估指标
+    print(f'目标变量 {i + 1} 的评估结果:')
+    print(f'MSE: {mse:.4f}')
+    print(f'R²: {r2:.4f}')
 
     # 绘制预测图
     ax = axs[i] if n_targets > 1 else axs

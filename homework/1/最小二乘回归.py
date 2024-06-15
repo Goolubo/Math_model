@@ -1,6 +1,16 @@
-import statsmodels.api as sm
-from pre_data import load_and_preprocess_data
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_squared_error, r2_score
 import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
+
+# 设置中文字体
+plt.rcParams['font.sans-serif'] = ['SimHei']  # 例如使用黑体
+plt.rcParams['axes.unicode_minus'] = False  # 正常显示负号
+
+# 导入预处理模块
+from pre_data import load_and_preprocess_data
 
 # 定义文件路径
 file_path = 'D:/桌面/汽油辛烷值模型/附件一：325个样本数据.xlsx'
@@ -8,64 +18,67 @@ file_path = 'D:/桌面/汽油辛烷值模型/附件一：325个样本数据.xlsx
 # 加载和预处理数据
 independent_vars, dependent_vars, variable_names = load_and_preprocess_data(file_path)
 
-# 对自变量和因变量做最小二乘回归
-# 添加常数项到自变量中
-X = sm.add_constant(independent_vars)
-y1 = dependent_vars[:, 0]
-y2 = dependent_vars[:, 1]
+# 数据标准化
+scaler_X = StandardScaler()
+scaler_y = StandardScaler()
 
-# 对第一个进行回归分析
-model_y1 = sm.OLS(y1, X).fit()
-results_y1 = model_y1.summary()
-y1_pred = model_y1.predict(X)
+X_scaled = scaler_X.fit_transform(independent_vars)
+y_scaled = scaler_y.fit_transform(dependent_vars)
 
-# 对第二个进行回归分析
-model_y2 = sm.OLS(y2, X).fit()
-results_y2 = model_y2.summary()
-y2_pred = model_y2.predict(X)
+# 分割数据集为训练集和测试集
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_scaled, test_size=0.2, random_state=42)
 
-# 打印回归结果
-print("回归模型1（硫含量作为因变量）结果：")
-print(results_y1)
+# 创建线性回归模型
+linreg = LinearRegression()
 
-print("\n回归模型2（辛烷值作为因变量）结果：")
-print(results_y2)
+# 训练模型
+linreg.fit(X_train, y_train)
 
+# 预测
+y_train_pred = linreg.predict(X_train)
+y_test_pred = linreg.predict(X_test)
+
+# 反标准化预测结果
+y_train_pred_original = scaler_y.inverse_transform(y_train_pred)
+y_test_pred_original = scaler_y.inverse_transform(y_test_pred)
+y_train_original = scaler_y.inverse_transform(y_train)
+y_test_original = scaler_y.inverse_transform(y_test)
+
+# 评估模型
+for i in range(y_train_original.shape[1]):
+    mse_train = mean_squared_error(y_train_original[:, i], y_train_pred_original[:, i])
+    r2_train = r2_score(y_train_original[:, i], y_train_pred_original[:, i])
+    mse_test = mean_squared_error(y_test_original[:, i], y_test_pred_original[:, i])
+    r2_test = r2_score(y_test_original[:, i], y_test_pred_original[:, i])
+
+    print(f'目标变量 {i + 1}:')
+    print(f'训练集 MSE: {mse_train:.4f}')
+    print(f'训练集 R²: {r2_train:.4f}')
+    print(f'测试集 MSE: {mse_test:.4f}')
+    print(f'测试集 R²: {r2_test:.4f}')
+    print()
 
 # 可视化结果
-plt.figure(figsize=(14, 10))
+num_targets = y_train_original.shape[1]  # 因变量数量
 
-# 第一个回归分析结果
-plt.subplot(2, 2, 1)
-plt.scatter(y1, y1_pred, alpha=0.6, color='blue', label='Predicted vs Actual')
-plt.plot([min(y1), max(y1)], [min(y1), max(y1)], color='red', linestyle='--', label='Ideal')
-plt.xlabel('Actual')
-plt.ylabel('Predicted')
-plt.title('Model 1: Predicted vs Actual (Dependent Variable 1)')
-plt.legend()
+plt.figure(figsize=(14, 6 * num_targets))
 
-plt.subplot(2, 2, 2)
-plt.scatter(y1_pred, y1 - y1_pred, alpha=0.6, color='blue')
-plt.axhline(y=0, color='red', linestyle='--')
-plt.xlabel('Predicted')
-plt.ylabel('Residuals')
-plt.title('Model 1: Residuals vs Predicted')
+for i in range(num_targets):
+    plt.subplot(num_targets, 2, 2*i + 1)
+    plt.scatter(y_train_original[:, i], y_train_pred_original[:, i], alpha=0.6, color='blue', label='预测值 vs 实际值')
+    plt.plot([min(y_train_original[:, i]), max(y_train_original[:, i])], [min(y_train_original[:, i]), max(y_train_original[:, i])], color='red', linestyle='--', label='理想情况')
+    plt.xlabel('实际值')
+    plt.ylabel('预测值')
+    plt.title(f'训练集: 目标变量 {i+1} 预测值 vs 实际值')
+    plt.legend()
 
-# 第二个回归分析结果
-plt.subplot(2, 2, 3)
-plt.scatter(y2, y2_pred, alpha=0.6, color='green', label='Predicted vs Actual')
-plt.plot([min(y2), max(y2)], [min(y2), max(y2)], color='red', linestyle='--', label='Ideal')
-plt.xlabel('Actual')
-plt.ylabel('Predicted')
-plt.title('Model 2: Predicted vs Actual (Dependent Variable 2)')
-plt.legend()
-
-plt.subplot(2, 2, 4)
-plt.scatter(y2_pred, y2 - y2_pred, alpha=0.6, color='green')
-plt.axhline(y=0, color='red', linestyle='--')
-plt.xlabel('Predicted')
-plt.ylabel('Residuals')
-plt.title('Model 2: Residuals vs Predicted')
+    plt.subplot(num_targets, 2, 2*i + 2)
+    plt.scatter(y_test_original[:, i], y_test_pred_original[:, i], alpha=0.6, color='green', label='预测值 vs 实际值')
+    plt.plot([min(y_test_original[:, i]), max(y_test_original[:, i])], [min(y_test_original[:, i]), max(y_test_original[:, i])], color='red', linestyle='--', label='理想情况')
+    plt.xlabel('实际值')
+    plt.ylabel('预测值')
+    plt.title(f'测试集: 目标变量 {i+1} 预测值 vs 实际值')
+    plt.legend()
 
 plt.tight_layout()
 plt.show()

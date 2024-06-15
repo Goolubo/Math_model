@@ -56,15 +56,18 @@ y_train_original = scaler_y.inverse_transform(y_train)
 y_test_original = scaler_y.inverse_transform(y_test)
 
 # 评估模型
-mse_train_best = mean_squared_error(y_train_original, y_train_pred_original_best)
-r2_train_best = r2_score(y_train_original, y_train_pred_original_best)
-mse_test_best = mean_squared_error(y_test_original, y_test_pred_original_best)
-r2_test_best = r2_score(y_test_original, y_test_pred_original_best)
+num_targets = y_train_original.shape[1]  # 因变量数量
 
-print(f'训练集 MSE: {mse_train_best:.4f}')
-print(f'训练集 R²: {r2_train_best:.4f}')
-print(f'测试集 MSE: {mse_test_best:.4f}')
-print(f'测试集 R²: {r2_test_best:.4f}')
+for i in range(num_targets):
+    mse_train_best = mean_squared_error(y_train_original[:, i], y_train_pred_original_best[:, i])
+    r2_train_best = r2_score(y_train_original[:, i], y_train_pred_original_best[:, i])
+    mse_test_best = mean_squared_error(y_test_original[:, i], y_test_pred_original_best[:, i])
+    r2_test_best = r2_score(y_test_original[:, i], y_test_pred_original_best[:, i])
+
+    print(f'目标变量 {i+1} 训练集 MSE: {mse_train_best:.4f}')
+    print(f'目标变量 {i+1} 训练集 R²: {r2_train_best:.4f}')
+    print(f'目标变量 {i+1} 测试集 MSE: {mse_test_best:.4f}')
+    print(f'目标变量 {i+1} 测试集 R²: {r2_test_best:.4f}')
 
 # 可视化结果
 num_targets = y_train_original.shape[1]  # 因变量数量
